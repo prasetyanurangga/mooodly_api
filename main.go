@@ -3,8 +3,6 @@ package main
 import (
 	"github.com/prasetyanurangga/snaptify_api/spotify"
     "encoding/json"
-    "math"
-    "errors"
     "github.com/gin-gonic/gin"
     "os"
     "strings"
