@@ -7,6 +7,7 @@ import (
     "github.com/gin-contrib/cors"
     "os"
     "strings"
+    "fmt"
 
 
 )
@@ -152,6 +153,7 @@ func getTrackSpotify(access_token string) (ResponApi) {
 	trackIdString := strings.Join(trackIdList[:], ",")
 
 
+
 	var responseAudioFeatures ResponseAudioFeature
 
 	audioFeatureList := []AudioFeature{}
@@ -159,6 +161,7 @@ func getTrackSpotify(access_token string) (ResponApi) {
 	responseAF, _ := spot.Get("audio-features?ids=%s", nil, trackIdString)
 	json.Unmarshal([]byte(responseAF), &responseAudioFeatures)
 	itemsAudioFeature := responseAudioFeatures.AudioFeatures
+	fmt.Println(responseAudioFeatures)
 
 
 
