@@ -320,12 +320,14 @@ func CORSMiddleware() gin.HandlerFunc {
 
 func main() {
 	router := gin.Default()
-	router.Use(cors.New(cors.Config{
-        AllowOrigins: []string{"*"},
-        AllowMethods: []string{"POST", "PUT", "PATCH", "DELETE", "OPTIONS",  "HEAD"},
-        AllowCredentials: true,
-        AllowHeaders: []string{"Access-Control-Allow-Headers", "Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization", "accept", "origin", "Cache-Control", "X-Requested-With"},
-    }))
+	// router.Use(cors.New(cors.Config{
+ //        AllowOrigins: []string{"*"},
+ //        AllowMethods: []string{"POST", "PUT", "PATCH", "DELETE", "OPTIONS",  "HEAD"},
+ //        AllowCredentials: true,
+ //        AllowHeaders: []string{"Access-Control-Allow-Headers", "Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization", "accept", "origin", "Cache-Control", "X-Requested-With"},
+ //    }))
+ 
+	router.Use(CORSMiddleware())
     router.GET("/get_spotify", func(c *gin.Context) {
         accessToken := c.GetHeader("access_token")
         tracks := getTrackSpotify(accessToken)
