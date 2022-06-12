@@ -325,6 +325,6 @@ func main() {
 
         c.JSON(200, gin.H{"data" : tracks}) // Your custom response here
     })
-    router.Run(":8800")
+    router.Run()
 
 }
