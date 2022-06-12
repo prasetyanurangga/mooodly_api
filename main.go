@@ -322,7 +322,7 @@ func main() {
 	router := gin.Default()
 	router.Use(cors.New(cors.Config{
         AllowOrigins: []string{"*"},
-        AllowMethods: []string{"POST", "PUT", "PATCH", "DELETE"},
+        AllowMethods: []string{"POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
         AllowHeaders: []string{"Content-Type,access-control-allow-origin, access-control-allow-headers"},
     }))
     router.GET("/get_spotify", func(c *gin.Context) {
