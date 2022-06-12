@@ -325,10 +325,9 @@ func main() {
         AllowMethods: []string{"POST", "PUT", "PATCH", "DELETE"},
         AllowHeaders: []string{"Content-Type,access-control-allow-origin, access-control-allow-headers"},
     }))
-    router.POST("/get_spotify", func(c *gin.Context) {
+    router.GET("/get_spotify", func(c *gin.Context) {
         accessToken := c.GetHeader("access_token")
         tracks := getTrackSpotify(accessToken)
-
         c.JSON(200, gin.H{"data" : tracks}) // Your custom response here
     })
     router.Run()
