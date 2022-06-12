@@ -7,7 +7,6 @@ import (
     "github.com/gin-contrib/cors"
     "os"
     "strings"
-    "fmt"
 
 
 )
@@ -152,7 +151,6 @@ func getTrackSpotify(access_token string) (ResponApi) {
 
 	trackIdString := strings.Join(trackIdList[:], ",")
 
-	fmt.Println(trackIdString)
 
 	var responseAudioFeatures ResponseAudioFeature
 
