@@ -4,6 +4,7 @@ import (
 	"github.com/prasetyanurangga/snaptify_api/spotify"
     "encoding/json"
     "github.com/gin-gonic/gin"
+    "github.com/gin-contrib/cors"
     "os"
     "strings"
     "fmt"
