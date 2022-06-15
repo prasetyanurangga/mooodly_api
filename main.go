@@ -324,6 +324,7 @@ func main() {
     router.GET("/get_spotify", func(c *gin.Context) {
         accessToken := c.GetHeader("access_token")
         tracks := getTrackSpotify(accessToken)
+        c.Header("Content-Type", "application/json")
         c.JSON(200, gin.H{"data" : tracks}) // Your custom response here
     })
     router.Run()
