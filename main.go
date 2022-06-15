@@ -318,25 +318,9 @@ func CORSMiddleware() gin.HandlerFunc {
     }
 }
 
-func CORSConfig() cors.Config {
-    corsConfig := cors.DefaultConfig()
-    corsConfig.AllowOrigins = []string{"https://prasetyanurangga.github.io/moodly"}
-    corsConfig.AllowCredentials = true
-    corsConfig.AddAllowHeaders("Access-Control-Allow-Headers", "access-control-allow-origin, access-control-allow-headers", "Content-Type", "X-XSRF-TOKEN", "Accept", "Origin", "X-Requested-With", "Authorization")
-    corsConfig.AddAllowMethods("GET", "POST", "PUT", "DELETE")
-    return corsConfig
-}
-
 func main() {
 	router := gin.Default()
-	router.Use(cors.New(cors.Config{
-        AllowOrigins: []string{"https://prasetyanurangga.github.io/moodly"},
-        AllowMethods: []string{"POST", "PUT", "PATCH", "DELETE", "OPTIONS",  "HEAD"},
-        AllowCredentials: true,
-        AllowHeaders: []string{"Access-Control-Allow-Origin", "Access-Control-Allow-Headers", "Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization", "accept", "origin", "Cache-Control", "X-Requested-With"},
-    }))
-
-	// router.Use(CORSMiddleware())
+	router.Use(CORSMiddleware())
     router.GET("/get_spotify", func(c *gin.Context) {
         accessToken := c.GetHeader("access_token")
         tracks := getTrackSpotify(accessToken)
