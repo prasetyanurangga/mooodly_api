@@ -302,27 +302,11 @@ func contains(s []string, str string) bool {
 	return false
 }
 
-func CORSMiddleware() gin.HandlerFunc {
-    return func(c *gin.Context) {
-        c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-        c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
-        c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, Accept, Origin, Cache-Control, X-Requested-With")
-        c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
-
-        if c.Request.Method == "OPTIONS" {
-            c.AbortWithStatus(204)
-            return
-        }
-	    
-        c.Next()
-    }
-}
 
 func main() {
 	router := gin.Default()
-	// router.Use(CORSMiddleware())
 	router.Use(cors.New(cors.Config{
-        AllowOrigins:     []string{"*"},
+        AllowOrigins:     []string{"https://prasetyanurangga.github.io"},
         AllowMethods:     []string{"POST", "OPTIONS", "GET"},
         AllowHeaders:     []string{"*"},
         ExposeHeaders:    []string{"Content-Length"},
