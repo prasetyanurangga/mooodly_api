@@ -327,7 +327,6 @@ func main() {
         AllowHeaders:     []string{"*"},
         ExposeHeaders:    []string{"Content-Length"},
         AllowCredentials: true,
-        MaxAge: 12 * time.Hour,
     }))
     router.GET("/get_spotify", func(c *gin.Context) {
         accessToken := c.GetHeader("access_token")
