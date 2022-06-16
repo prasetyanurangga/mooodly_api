@@ -4,7 +4,7 @@ import (
 	"github.com/prasetyanurangga/snaptify_api/spotify"
     "encoding/json"
     "github.com/gin-gonic/gin"
-    // "github.com/gin-contrib/cors"
+    "github.com/gin-contrib/cors"
     "os"
     "strings"
     "fmt"
@@ -320,7 +320,16 @@ func CORSMiddleware() gin.HandlerFunc {
 
 func main() {
 	router := gin.Default()
-	router.Use(CORSMiddleware())
+	// router.Use(CORSMiddleware())
+	router.Use(cors.New(cors.Config{
+        AllowOrigins:     []string{"*"},
+        AllowMethods:     []string{"POST", "OPTIONS", "GET"},
+        AllowHeaders:     []string{"Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization", "Accept", "Origin", "Cache-Control", "X-Requested-With"},
+        ExposeHeaders:    []string{"Content-Length"},
+        AllowCredentials: true,
+        OptionsPassthrough: true,
+        MaxAge: 12 * time.Hour,
+    }))
     router.GET("/get_spotify", func(c *gin.Context) {
         accessToken := c.GetHeader("access_token")
         tracks := getTrackSpotify(accessToken)
