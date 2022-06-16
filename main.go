@@ -324,10 +324,9 @@ func main() {
 	router.Use(cors.New(cors.Config{
         AllowOrigins:     []string{"*"},
         AllowMethods:     []string{"POST", "OPTIONS", "GET"},
-        AllowHeaders:     []string{"Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization", "Accept", "Origin", "Cache-Control", "X-Requested-With"},
+        AllowHeaders:     []string{"*"},
         ExposeHeaders:    []string{"Content-Length"},
         AllowCredentials: true,
-        OptionsPassthrough: true,
         MaxAge: 12 * time.Hour,
     }))
     router.GET("/get_spotify", func(c *gin.Context) {
