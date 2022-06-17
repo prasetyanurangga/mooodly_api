@@ -395,7 +395,7 @@ func contains(s []string, str string) bool {
 func main() {
 	router := gin.Default()
 	router.Use(cors.New(cors.Config{
-        AllowOrigins:     []string{"https://prasetyanurangga.github.io"},
+        AllowOrigins:     []string{"*"},
         AllowMethods:     []string{"POST", "OPTIONS", "GET"},
         AllowHeaders:     []string{"*"},
         ExposeHeaders:    []string{"Content-Length"},
