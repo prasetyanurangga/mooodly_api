@@ -90,6 +90,7 @@ type ResponApi struct {
 	Dance     Dance    `json:"dance"`
 	Mood     Mood    `json:"mood"`
 	Energy     Energy    `json:"energy"`
+	Acousticness     Acousticness    `json:"acousticness"`
 	Year     Year    `json:"year"`
 }
 
@@ -122,6 +123,12 @@ type Energy struct {
 type Dance struct {
 	Party ItemRespon `json:"party"`
 	Relax ItemRespon `json:"relax"`
+	Total int `json:"total"`
+}
+
+type Acousticness struct {
+	Acoustic ItemRespon `json:"acoustic"`
+	NonAcoustic ItemRespon `json:"non_acoustic"`
 	Total int `json:"total"`
 }
 
@@ -266,6 +273,10 @@ func getTrackSpotify(access_token string) (ResponApi) {
 	itemsDance2 := []Track{}
 
 
+	itemsAcousticness1 := []Track{}
+	itemsAcousticness2 := []Track{}
+
+
 	if  len(itemsAudioFeature) > 0 {
 		for i := 0; i < len(itemsAudioFeature); i++ {
 
@@ -319,6 +330,11 @@ func getTrackSpotify(access_token string) (ResponApi) {
 		    	itemsDance2 = append(itemsDance2, traks)
 		    }
 
+		    if itemsAudioFeature[i].Acousticness > 0.5 {
+		    	itemsAcousticness1 = append(itemsAcousticness1, traks)
+		    } else {
+		    	itemsAcousticness2 = append(itemsAcousticness2, traks)
+		    }
 
 
 
@@ -354,6 +370,17 @@ func getTrackSpotify(access_token string) (ResponApi) {
 			Chill: ItemRespon{
 				Data: itemsEnergy2,
 				Count: len(itemsEnergy2),
+			},
+			Total: len(audioFeatureList),
+		},
+		Acousticness: Acousticness{
+			Acoustic: ItemRespon{
+				Data: itemsAcousticness1,
+				Count: len(itemsAcousticness1),
+			},
+			NonAcoustic: ItemRespon{
+				Data: itemsAcousticness2,
+				Count: len(itemsAcousticness2),
 			},
 			Total: len(audioFeatureList),
 		},
