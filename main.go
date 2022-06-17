@@ -5,9 +5,11 @@ import (
     "encoding/json"
     "github.com/gin-gonic/gin"
     "github.com/gin-contrib/cors"
+    "strconv"
     "os"
     "strings"
     "fmt"
+    "sort"
 
 
 )
@@ -29,26 +31,41 @@ type TrackResponse struct {
     Name     string  			  `json:"name"`
     Artist   []ArtistResponse     `json:"artists"`
     URL    	 ExternalUrlResponse  `json:"external_urls"`
+    Album    AlbumResponse  	  `json:"album"`
 
 }
 
 type ExternalUrlResponse struct {
-    SpotifyUrl       		string  `json:"spotify"`
+    SpotifyUrl   string  `json:"spotify"`
 
 }
 
+type AlbumResponse struct {
+    Name   					string  		 `json:"name"`
+    ReleaseDate   			string 			 `json:"release_date"`
+    ReleaseDatePrecision   	string  		 `json:"release_date_precision"`
+    Images   				[]ImageResponse  `json:"images"`
+}
+
+type ImageResponse struct {
+    URL   				string  `json:"url"`
+    Height   			string  `json:"height"`
+    Width   			string  `json:"width"`
+}
+
+
 type ArtistResponse struct {
-    ID       		string  `json:"id"`
-    Name     		string  `json:"name"`
-    ExternalUrl  	ExternalUrlResponse  `json:"external_urls"`
+    ID       		string  				`json:"id"`
+    Name     		string  				`json:"name"`
+    ExternalUrl  	ExternalUrlResponse  	`json:"external_urls"`
 
 }
 
 type AudioFeature struct {
     Danceability       		float64  `json:"danceability"`
     Energy     				float64  `json:"energy"`
-    Key   					int64  `json:"key"`
-    Loudness    			float64   `json:"loudness"`
+    Key   					int64  	 `json:"key"`
+    Loudness    			float64  `json:"loudness"`
     Speechiness       		float64  `json:"speechiness"`
     Acousticness     		float64  `json:"acousticness"`
     Instrumentalness   		float64  `json:"instrumentalness"`
@@ -64,6 +81,8 @@ type Track struct {
     Name     string  `json:"name"`
     Artist   string  `json:"artists"`
     URL    	 string  `json:"external_url"`
+    ImageURL   string  `json:"image_url"`
+    ReleaseYear    	 string  `json:"release_year"`
 
 }
 
@@ -71,6 +90,18 @@ type ResponApi struct {
 	Dance     Dance    `json:"dance"`
 	Mood     Mood    `json:"mood"`
 	Energy     Energy    `json:"energy"`
+	Year     Year    `json:"year"`
+}
+
+type Year struct {
+	Item []ItemYear `json:"item"`
+	Count int `json:"count"`
+}
+
+type ItemYear struct {
+	Year int `json:"year"`
+	Count int `json:"count"`
+	Data []Track `json:"data"`
 }
 
 type Mood struct {
@@ -117,12 +148,19 @@ func getTrackSpotify(access_token string) (ResponApi) {
 
 	var responseTracks ResponseTrack
 	var trackList []Track = []Track{}
+	var trackYearList map[int][]Track = map[int][]Track{
+		1940: []Track{},
+		1950: []Track{},
+		1960: []Track{},
+		1970: []Track{},
+		1980: []Track{},
+		1990: []Track{},
+		2000: []Track{},
+		2010: []Track{},
+		2020: []Track{},
+	}
 	trackIdList := []string{}
-	// If we ere able to authorize then Get a simple album
 	response, _ := spot.Get("me/top/tracks?time_range=long_term&limit=100&offset=5", nil, nil)
-
-	// Parse response to a JSON Object &&
-	// get the album's name
 	json.Unmarshal([]byte(response), &responseTracks)
 	itemsTrack := responseTracks.Tracks
 
@@ -133,21 +171,71 @@ func getTrackSpotify(access_token string) (ResponApi) {
 			name := itemsTrack[i].Name
 			id := itemsTrack[i].ID
 			artist := itemsTrack[i].Artist
+			album := itemsTrack[i].Album
+			releaseDate := album.ReleaseDate
+			imagesAlbum := album.Images
 			var artistText []string
+			imageUrlText := ""
+
+
+			releaseYear := releaseDate[0:4]
+
+			year, _ := strconv.Atoi((releaseDate[0:3] + "0"))
 
 			for iArtist := 0; iArtist < len(artist); iArtist++ {
 				artistText = append(artistText, artist[iArtist].Name)
 			}
-	        trackList = append(trackList, Track{
+
+			if len(imagesAlbum) > 0 {
+				imageUrlText = imagesAlbum[0].URL
+			}
+
+			trackTemp := Track{
 	            ID: id, 
 	            Name: name, 
 	            Artist: strings.Join(artistText, ","), 
 	            URL: externalUrl,
-	        })
+	            ImageURL : imageUrlText,
+	            ReleaseYear: releaseYear,
+
+	        }
+
+			var valueMapYear, isExistMapYear = trackYearList[year]
+
+			if isExistMapYear {
+				trackYearList[year] = append(valueMapYear, trackTemp)
+			} else {
+				trackTemps := []Track{trackTemp}
+				trackYearList[year] = trackTemps
+			}
+
+
+	        trackList = append(trackList, trackTemp)
 
 	        trackIdList = append(trackIdList, id)
 	    }
+	    fmt.Println(trackYearList)
 	}
+
+	itemYear := []ItemYear{}
+
+	keysYear := make([]int, 0, len(trackYearList))
+
+	for k := range trackYearList{
+        keysYear = append(keysYear, k)
+    }
+
+    sort.Ints(keysYear)
+
+	for _, keyYear := range keysYear {
+		itemYear = append(itemYear, ItemYear{
+			Year : keyYear,
+			Count : len(trackYearList[keyYear]),
+			Data : trackYearList[keyYear],
+		})
+    }
+
+
 
 
 	trackIdString := strings.Join(trackIdList[:], ",")
@@ -280,12 +368,13 @@ func getTrackSpotify(access_token string) (ResponApi) {
 			},
 			Total: len(audioFeatureList),
 		},
+		Year : Year{
+			Item : itemYear,
+			Count: len(audioFeatureList),
+		},
 	}
 }
 
-type RequestSpotify struct{
-    AccessToken string `json:"access_token"`
-}
 
 func getEnv(key string) string {
 
@@ -316,8 +405,7 @@ func main() {
         accessToken := c.GetHeader("access_token")
         tracks := getTrackSpotify(accessToken)
         c.Header("Content-Type", "application/json")
-        c.JSON(200, gin.H{"data" : tracks}) // Your custom response here
+        c.JSON(200, gin.H{"data" : tracks})
     })
     router.Run()
-
 }
