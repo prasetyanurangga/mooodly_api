@@ -173,6 +173,7 @@ func (spotify *Spotify) Request(method, format string, data map[string]interface
 	// Check method type to call corresponding
 	// go-request method
 	if method == "GET" {
+		fmt.Println(targetURL)
 		request.Get(targetURL)
 	}
 	if method == "POST" {
@@ -186,7 +187,6 @@ func (spotify *Spotify) Request(method, format string, data map[string]interface
 	}
 
 	request.Set("Authorization", fmt.Sprintf("Bearer %s", spotify.accessToken))
-
 	// Add the data to the request if it
 	// isn't null
 	if data != nil {

@@ -5,6 +5,7 @@ import (
     "encoding/json"
     "github.com/gin-gonic/gin"
     "github.com/gin-contrib/cors"
+    "github.com/parnurzeal/gorequest"
     "strconv"
     "os"
     "strings"
@@ -87,11 +88,12 @@ type Track struct {
 }
 
 type ResponApi struct {
-	Dance     Dance    `json:"dance"`
-	Mood     Mood    `json:"mood"`
-	Energy     Energy    `json:"energy"`
-	Acousticness     Acousticness    `json:"acousticness"`
-	Year     Year    `json:"year"`
+	Dance Dance `json:"dance"`
+	Mood Mood `json:"mood"`
+	Energy Energy `json:"energy"`
+	Acousticness Acousticness `json:"acousticness"`
+	Year Year `json:"year"`
+	User UserSpotify `json:"user"`
 }
 
 type Year struct {
@@ -137,6 +139,35 @@ type ItemRespon struct {
 	Count int `json:"count"`
 }
 
+type UserSpotify struct {
+	DisplayName string `json:"display_name"`
+	Email string `json:"email"`
+	ID string `json:"id"`
+}
+
+type AudioFeatureSupbase struct {
+  ID string `json:"id"`
+  Data string `json:"data"`
+}
+
+type ResponseAudioFeatureSupbase []struct {
+  ID string `json:"id"`
+  Data string `json:"data"`
+}
+
+type SpotifyMe struct {
+	Country         string `json:"country"`
+	DisplayName     string `json:"display_name"`
+	Email           string `json:"email"`
+	ExternalUrls ExternalUrlResponse `json:"external_urls"`
+	Href   string `json:"href"`
+	ID     string `json:"id"`
+	Images []ImageResponse `json:"images"`
+	Product string `json:"product"`
+	Type    string `json:"type"`
+	URI     string `json:"uri"`
+}
+
 
 func NumberToFloat(num json.Number) (value float64) {
 	var err error
@@ -154,6 +185,7 @@ func getTrackSpotify(access_token string) (ResponApi) {
 	spot := spotify.New(clientIDEnv, clientSecretEnv, access_token)
 
 	var responseTracks ResponseTrack
+	var spotifyMe SpotifyMe
 	var trackList []Track = []Track{}
 	var trackYearList map[int][]Track = map[int][]Track{
 		1940: []Track{},
@@ -166,10 +198,18 @@ func getTrackSpotify(access_token string) (ResponApi) {
 		2010: []Track{},
 		2020: []Track{},
 	}
+
+	responseMe, _ := spot.Get("%s", nil, "me")
+	json.Unmarshal([]byte(responseMe), &spotifyMe)
 	trackIdList := []string{}
 	response, _ := spot.Get("me/top/tracks?time_range=long_term&limit=100&offset=5", nil, nil)
 	json.Unmarshal([]byte(response), &responseTracks)
 	itemsTrack := responseTracks.Tracks
+
+
+
+
+
 
 
 	if  len(itemsTrack) > 0 {
@@ -221,7 +261,6 @@ func getTrackSpotify(access_token string) (ResponApi) {
 
 	        trackIdList = append(trackIdList, id)
 	    }
-	    fmt.Println(trackYearList)
 	}
 
 	itemYear := []ItemYear{}
@@ -256,8 +295,6 @@ func getTrackSpotify(access_token string) (ResponApi) {
 	responseAF, _ := spot.Get("audio-features?ids=%s", nil, trackIdString)
 	json.Unmarshal([]byte(responseAF), &responseAudioFeatures)
 	itemsAudioFeature := responseAudioFeatures.AudioFeatures
-	fmt.Println(responseAudioFeatures)
-
 
 
 	itemsMood1 := []Track{}
@@ -341,8 +378,7 @@ func getTrackSpotify(access_token string) (ResponApi) {
 		}
 	}
 
-
-	return ResponApi{
+	resultApi := ResponApi{
 		Mood: Mood{
 			Depressed: ItemRespon{
 				Data: itemsMood1,
@@ -399,7 +435,22 @@ func getTrackSpotify(access_token string) (ResponApi) {
 			Item : itemYear,
 			Count: len(audioFeatureList),
 		},
+		User : UserSpotify{
+			DisplayName :spotifyMe.DisplayName,
+			Email : spotifyMe.Email,
+			ID  : spotifyMe.ID,
+		},
 	}
+
+
+	stringDataUser, _ := json.Marshal(resultApi)
+
+	insertToSupabase(spotifyMe.ID, string(stringDataUser))
+
+
+
+
+	return resultApi
 }
 
 
@@ -418,6 +469,49 @@ func contains(s []string, str string) bool {
 	return false
 }
 
+func insertToSupabase(id string, data string){
+
+	supabaseKeyEnv := getEnv("SUPABASE_KEY")
+	ver := AudioFeatureSupbase{ ID: id, Data: data }
+	// fmt.Println(ver)
+	request := gorequest.New()
+	resp, body, errs := request.Post("https://npptuwltwibusoqzoqxp.supabase.co/rest/v1/audio_feature").
+	  Send(ver).
+	  Set("apikey", supabaseKeyEnv).
+	  Set("Authorization", "Bearer "+supabaseKeyEnv ).
+	  Set("Content-Type", "application/json").
+	  Set("Prefer", "resolution=merge-duplicates").
+	  End()
+	fmt.Println(resp)
+	fmt.Println(body)
+	fmt.Println(errs)
+}
+
+func readFromSupabase(id string)  (ResponApi) {
+
+	supabaseKeyEnv := getEnv("SUPABASE_KEY")
+	var audioFeatureSupbase ResponseAudioFeatureSupbase
+	request := gorequest.New()
+	request.Get("https://npptuwltwibusoqzoqxp.supabase.co/rest/v1/audio_feature?id=eq."+id+"&select=*").
+	  Set("apikey", supabaseKeyEnv).
+	  Set("Authorization", "Bearer "+supabaseKeyEnv ).
+	  Set("Content-Type", "application/json").
+	  Set("Prefer", "resolution=merge-duplicates")
+	
+	_, body, errs := request.End()
+
+	fmt.Println(errs)
+	result := []byte(body)
+	json.Unmarshal([]byte(result), &audioFeatureSupbase)
+
+	var dataSupabase = audioFeatureSupbase[0]
+
+	data := ResponApi{}
+    json.Unmarshal([]byte(string(dataSupabase.Data)), &data)
+
+	return data
+}
+
 
 func main() {
 	router := gin.Default()
@@ -432,6 +526,11 @@ func main() {
         accessToken := c.GetHeader("access_token")
         tracks := getTrackSpotify(accessToken)
         c.Header("Content-Type", "application/json")
+        c.JSON(200, gin.H{"data" : tracks})
+    })
+    router.GET("/get_user", func(c *gin.Context) {
+        id := c.Query("id")
+        tracks := readFromSupabase(id)
         c.JSON(200, gin.H{"data" : tracks})
     })
     router.Run()
