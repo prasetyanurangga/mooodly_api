@@ -500,16 +500,22 @@ func readFromSupabase(id string)  (ResponApi) {
 	
 	_, body, errs := request.End()
 
-	fmt.Println(errs)
+
 	result := []byte(body)
+	data := ResponApi{}
 	json.Unmarshal([]byte(result), &audioFeatureSupbase)
 
-	var dataSupabase = audioFeatureSupbase[0]
+	if len(audioFeatureSupbase) > 0 {
 
-	data := ResponApi{}
-    json.Unmarshal([]byte(string(dataSupabase.Data)), &data)
+		var dataSupabase = audioFeatureSupbase[0]
+
+	    json.Unmarshal([]byte(string(dataSupabase.Data)), &data)
+
+	} 
 
 	return data
+
+	
 }
 
 
