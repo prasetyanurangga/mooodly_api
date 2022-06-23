@@ -535,5 +535,8 @@ func main() {
         tracks := readFromSupabase(id)
         c.JSON(200, gin.H{"data" : tracks})
     })
+    router.GET("/", func(c *gin.Context) {
+          c.String(http.StatusOK, "Hello Word")
+     })
     router.Run()
 }
