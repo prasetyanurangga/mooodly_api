@@ -475,16 +475,13 @@ func insertToSupabase(id string, data string){
 	ver := AudioFeatureSupbase{ ID: id, Data: data }
 	// fmt.Println(ver)
 	request := gorequest.New()
-	resp, body, errs := request.Post("https://npptuwltwibusoqzoqxp.supabase.co/rest/v1/audio_feature").
+	request.Post("https://npptuwltwibusoqzoqxp.supabase.co/rest/v1/audio_feature").
 	  Send(ver).
 	  Set("apikey", supabaseKeyEnv).
 	  Set("Authorization", "Bearer "+supabaseKeyEnv ).
 	  Set("Content-Type", "application/json").
 	  Set("Prefer", "resolution=merge-duplicates").
 	  End()
-	fmt.Println(resp)
-	fmt.Println(body)
-	fmt.Println(errs)
 }
 
 func readFromSupabase(id string)  (ResponApi) {
@@ -498,7 +495,7 @@ func readFromSupabase(id string)  (ResponApi) {
 	  Set("Content-Type", "application/json").
 	  Set("Prefer", "resolution=merge-duplicates")
 	
-	_, body, errs := request.End()
+	_, body, _ := request.End()
 
 
 	result := []byte(body)
